@@ -63,21 +63,12 @@
           testApp = pkgs.writeShellApplication {
             name = "delphis-tests";
             runtimeInputs = [
-              (pkgs.python3.withPackages (
-                ps: with ps; [
-                  pyqt6
-                  pillow
-                  pytest
-                  pytest-qt
-                  setuptools
-                ]
-              ))
-              pkgs.qt6.qtbase
+              pkgs.dotnetCorePackages.sdk_8_0
             ];
             text = ''
-              export QT_QPA_PLATFORM=offscreen
-              export PYTHONPATH="''${PYTHONPATH:+$PYTHONPATH:}$PWD"
-              pytest tests/ -v "$@"
+              export DOTNET_CLI_TELEMETRY_OPTOUT=1
+              export DOTNET_NOLOGO=1
+              dotnet run --project tests/Delphis.Tests/Delphis.Tests.csproj "$@"
             '';
           };
         in
@@ -87,7 +78,7 @@
             type = "app";
             program = "${pkgs.delphis}/bin/delphis";
             meta = {
-              description = "Delphis: Dolphin Texture Manipulation Tool (GUI)";
+              description = "Delphis: Dolphin Texture Manipulation Tool";
             };
           };
           dte = {
@@ -101,7 +92,7 @@
             type = "app";
             program = "${testApp}/bin/delphis-tests";
             meta = {
-              description = "Run automated test suite";
+              description = "Run automated test suite (.NET 8 C#)";
             };
           };
         }
@@ -113,33 +104,23 @@
           delphis-package = pkgs.delphis;
           dte-package = pkgs.dolphin-texture-extraction-tool;
 
-          pytest = pkgs.stdenv.mkDerivation {
-            pname = "delphis-pytest-check";
-            version = "1.0.0";
+          dotnet-tests = pkgs.stdenv.mkDerivation {
+            pname = "delphis-dotnet-tests";
+            version = nixpkgs.lib.removeSuffix "\n" (builtins.readFile ./VERSION);
             src = self;
 
             nativeBuildInputs = [
-              (pkgs.python3.withPackages (
-                ps: with ps; [
-                  pyqt6
-                  pillow
-                  pytest
-                  pytest-qt
-                  setuptools
-                ]
-              ))
-              pkgs.qt6.qtbase
-              pkgs.qt6.wrapQtAppsHook
+              pkgs.dotnetCorePackages.sdk_8_0
             ];
 
             dontBuild = true;
 
             installPhase = ''
               mkdir -p $out
-              export QT_QPA_PLATFORM=offscreen
+              export DOTNET_CLI_TELEMETRY_OPTOUT=1
+              export DOTNET_NOLOGO=1
               export HOME=$TMPDIR
-              export PYTHONPATH=$PWD
-              pytest tests/ -v
+              dotnet run --project tests/Delphis.Tests/Delphis.Tests.csproj
               touch $out/success
             '';
           };
@@ -153,21 +134,7 @@
             name = "delphis-dev-shell";
 
             packages = [
-              (pkgs.python3.withPackages (
-                ps: with ps; [
-                  pyqt6
-                  pillow
-                  pytest
-                  pytest-qt
-                  setuptools
-                  wheel
-                  black
-                  ruff
-                ]
-              ))
-              pkgs.qt6.qtbase
-              pkgs.qt6.qtwayland
-              pkgs.qt6.qtsvg
+              pkgs.dotnetCorePackages.sdk_8_0
               pkgs.dolphin-texture-extraction-tool
               pkgs.realesrgan-ncnn-vulkan
               pkgs.imagemagick
@@ -177,10 +144,9 @@
             ];
 
             shellHook = ''
-              export QT_QPA_PLATFORM=wayland;xcb
-              echo "🐬 Welcome to the Delphis development environment!"
-              echo "Run 'pytest' to execute the test suite."
-              echo "Run 'delphis' to launch the application."
+              echo "🐬 Welcome to the Delphis .NET 8 development environment!"
+              echo "Run 'dotnet run --project tests/Delphis.Tests/Delphis.Tests.csproj' to execute tests."
+              echo "Run 'delphis --help' or 'delphis doctor' to launch Delphis."
             '';
           };
         }

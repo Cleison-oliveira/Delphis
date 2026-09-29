@@ -1,0 +1,12 @@
+<Project>
+  <PropertyGroup>
+    <DelphisRoot>$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), VERSION))</DelphisRoot>
+    <DelphisVersionFile Condition="Exists('$(DelphisRoot)/VERSION')">$([System.IO.File]::ReadAllText('$(DelphisRoot)/VERSION').Trim())</DelphisVersionFile>
+    <DelphisVersionFile Condition="'$(DelphisVersionFile)' == ''">1.0.0</DelphisVersionFile>
+    
+    <Version>$(DelphisVersionFile)</Version>
+    <AssemblyVersion>$(DelphisVersionFile)</AssemblyVersion>
+    <FileVersion>$(DelphisVersionFile)</FileVersion>
+    <InformationalVersion>$(DelphisVersionFile)</InformationalVersion>
+  </PropertyGroup>
+</Project>

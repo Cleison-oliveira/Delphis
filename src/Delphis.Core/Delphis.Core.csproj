@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <LangVersion>latest</LangVersion>
+    <Authors>Cleison Oliveira, Venomalia, Delphis Contributors</Authors>
+    <Company>Delphis Project</Company>
+    <Description>Delphis Core: High-performance Dolphin Texture Manipulation Engine (Alpha Transparency, Real-ESRGAN AI Upscaling, DDS Compression and DTE Orchestration)</Description>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+  </PropertyGroup>
+
+</Project>

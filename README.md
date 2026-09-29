@@ -1,129 +1,93 @@
 # Delphis 🐬✨
-### Dolphin Texture Manipulation Tool
+### Dolphin Texture Manipulation Tool (.NET 8)
 
 [![NixOS Flake](https://img.shields.io/badge/NixOS-Flake%20Ready-5277C3?logo=nixos&logoColor=white)](https://nixos.org)
-[![Python 3.10+](https://img.shields.io/badge/Python-3.10%2B-3776AB?logo=python&logoColor=white)](https://python.org)
-[![PyQt6](https://img.shields.io/badge/GUI-PyQt6%20%2F%20KDE%20Plasma%206-41CD52?logo=qt&logoColor=white)](https://riverbankcomputing.com/software/pyqt/)
-[![Tests](https://img.shields.io/badge/Tests-20%20Passing-brightgreen?logo=pytest&logoColor=white)](tests/)
+[![.NET 8.0](https://img.shields.io/badge/.NET-8.0%20C%23%2012-512BD4?logo=dotnet&logoColor=white)](https://dotnet.microsoft.com/en-us/download/dotnet/8.0)
+[![Tests](https://img.shields.io/badge/Tests-xUnit%20Passing-brightgreen?logo=xunit&logoColor=white)](tests/Delphis.Tests/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-**Delphis** is a modern Qt6 desktop application and standalone Nix Flake designed for high-resolution texture pack workflows in the **Dolphin Emulator** (GameCube & Wii). It bridges Dolphin's unique tonemap and hash architecture with advanced 4-channel neural AI upscaling, anti-aliased alpha transparency editing, and DirectDraw Surface (DDS) hardware block compression.
+**Delphis** is a modern, high-performance C# (.NET 8) texture manipulation suite and standalone Nix Flake designed for high-resolution texture pack workflows in the **Dolphin Emulator** (GameCube & Wii). It bridges Dolphin's tonemap and texture hash architecture with 4-channel neural AI upscaling, anti-aliased alpha transparency editing, and DirectDraw Surface (DDS) hardware block compression.
 
 ---
 
-## 🚀 Running Directly from the Repository (Nix)
+## 🚀 Running Directly from Repository
 
-You can run Delphis directly from GitHub without cloning or manual installation using standard Nix workflows:
-
-### 1. Direct Execution via Flake (`nix run`)
+### 1. Direct Execution via Nix Flake (`nix run`)
 
 ```bash
-# 🐬 Launch Delphis GUI immediately
-nix run github:Cleison-oliveira/Delphis
+# 🐬 Run Delphis directly from repository
+nix run github:Cleison-oliveira/Delphis -- --help
+
+# 🔍 Run System & GPU Doctor
+nix run github:Cleison-oliveira/Delphis -- doctor
 
 # 📦 Run the DolphinTextureExtraction CLI (dte)
 nix run github:Cleison-oliveira/Delphis#dte -- HELP
-nix run github:Cleison-oliveira/Delphis#dte -- Extract "/path/to/game.iso" "/path/to/out" -Tasks 4
 
 # 🧪 Run the full automated test suite directly from repo
 nix run github:Cleison-oliveira/Delphis#test
 ```
 
-### 2. Ephemeral Interactive Shell (`nix shell`)
-
-Drop Delphis and its backend tools into your current shell session:
-
-```bash
-nix shell github:Cleison-oliveira/Delphis
-
-# Now run commands directly:
-delphis
-dte HELP
-```
-
-### 3. Clone & Run Locally
+### 2. Standard .NET 8 CLI
 
 ```bash
 git clone https://github.com/Cleison-oliveira/Delphis.git
 cd Delphis
 
-# Run GUI
-nix run .
-
-# Run DTE CLI
-nix run .#dte -- HELP
-
 # Run tests
-nix run .#test
+dotnet test Delphis.sln
+
+# Run Delphis CLI
+dotnet run --project src/Delphis.Cli/Delphis.Cli.csproj -- doctor
+dotnet run --project src/Delphis.Cli/Delphis.Cli.csproj -- alpha "/path/to/in.png" "/path/to/out.png" --alpha 130 --smooth
+dotnet run --project src/Delphis.Cli/Delphis.Cli.csproj -- dds "/path/to/in_dir" "/path/to/out_dir" --preset BC7
+dotnet run --project src/Delphis.Cli/Delphis.Cli.csproj -- upscale "/path/to/in.png" "/path/to/out.png" --scale 4 --model realesrgan-x4plus-anime
+dotnet run --project src/Delphis.Cli/Delphis.Cli.csproj -- dte merge_rgba "/path/to/dump" "/path/to/merged" --tasks 4 --no-logs
 ```
 
-### 4. Classic / Non-Flake Nix (`nix-shell` & `nix-build`)
-
-Delphis includes `flake-compat` support out of the box for systems without flakes enabled:
-
-```bash
-# Direct remote execution without flakes:
-nix-shell https://github.com/Cleison-oliveira/Delphis/archive/main.tar.gz --run delphis
-
-# Local non-flake shell:
-nix-shell --run delphis
-
-# Local non-flake build:
-nix-build
-./result/bin/delphis
-```
+### 3. DTE Log File Control (`--logfile` / `--no-logfile`)
+The DTE extraction and tonemap merge module supports granular control over `.log` file generation on disk:
+- **Real-time Console Output**: DTE stdout output (`[01] Info: ...`) is always streamed in real time to the GUI Console Drawer and terminal.
+- **GUI Configurable**: In the **Extraction (DTE)** tab, toggle **"Generate DTE Log File (.log in output folder)"**. When unchecked, Delphis automatically cleans up `DTE-*.log` files from the output folder.
+- **CLI Flags**: Pass `--no-logfile` (or `--no-log`) to delete log files, or `--logfile` to retain them on disk.
 
 ---
 
 ## 🌟 Key Features & Modules
 
-### 1. 🟦 Extraction & Tonemaps (DTE Engine)
+### 1. 🟦 Extraction & Tonemaps (`Delphis.Core.Services.DteOrchestrator`)
 - **Game Texture Dumper**: Dumps raw textures directly from GameCube & Wii ISOs, WBFS, and RVZ dumps matching Dolphin's internal texture hash format.
-- **Grayscale Tonemap Combiner**: Automatically matches split grayscale pairs (`RGBA_*` and `BGRA_*`) generated by Dolphin and recombines them into single, editable high-resolution RGBA PNG textures (`CombineRGBA` / `CombineBGRA`).
+- **Grayscale Tonemap Combiner**: Reconstructs split grayscale pairs (`RGBA_*` and `BGRA_*`) generated by Dolphin into single, editable high-resolution RGBA PNG textures (`CombineRGBA` / `CombineBGRA`).
 - **Finalize & Split**: Takes upscaled or manually retouched textures, splits them back into Dolphin's expected grayscale tonemap channels, and optimizes them for in-game injection (`Finalize`).
-- **Fine-grained Controls**: Configurable concurrency (`-Tasks`), folder cleanup strategies (`none`, `default`, `simple`, `compact`), recursive archive extraction, and Dolphin mipmap detection flags.
 
-### 2. 🟨 Alpha & Transparency Processor
-- **Proportional Sub-Pixel Opacity (`0` to `255`)**: Interactive slider, numeric spinbox, and quick presets (`255` Opaque, `192` 75%, `130` Dolphin UI/Glass, `64` 25%, `0` Transparent).
+### 2. 🟨 Alpha & Transparency Processor (`Delphis.Core.Services.AlphaProcessor`)
+- **Proportional Sub-Pixel Opacity (`0` to `255`)**: Fine-grained alpha adjustment with quick preset levels (`255` Opaque, `192` 75%, `130` Dolphin UI/Glass, `64` 25%, `0` Transparent).
 - **Sub-Pixel Anti-Aliasing**: Proportional alpha scaling prevents jagged binary cutouts and preserves smooth edges.
-- **Defringing Algorithm**: Unmultiplies color channels using alpha weighting to eliminate discolored, dark, or white halo fringes around semi-transparent edges.
+- **Defringing Algorithm**: Unmultiplies color channels using alpha weighting ($C_{unmult} = \min(255, \frac{C \times 255}{\alpha})$) to eliminate discolored halos around semi-transparent edges.
 - **Gaussian Edge Smoothing**: Softens pixelated mask borders.
-- **Alpha Stripping (`RGBA -> RGB`)**: Strips transparency with optional custom background matte color.
 
-### 3. 🟩 4-Channel AI Upscaler (Real-ESRGAN Vulkan)
-- **Alpha-Preserving Pipeline**: Decouples RGB color and Alpha channels, processes each via Vulkan NCNN neural models, and recomposes without color bleed or border degradation.
-- **Models**:
-  - `realesrgan-x4plus-anime`: Tailored for cel-shaded and anime-style GameCube / Wii textures (e.g. *The Legend of Zelda: The Wind Waker*).
-  - `realesrgan-x4plus`: General purpose high-fidelity model for realistic textures.
-  - `realesrnet-x4plus`: Alternate sharp reconstruction model.
+### 3. 🟩 AI Upscaler with 2-Layer RGB+A Separation (`Delphis.Core.Services.UpscalerEngine`)
+- **Optimized 2-Layer Pipeline**: Decouples image data into only **RGB Color** (PNG24) and **Alpha Transparency** (Grayscale) layers, eliminating inefficient 4-channel splits.
+- **Direct 1-Pass Mode for Opaque Textures**: Automatically detects images without transparency and executes a direct 1-pass RGB upscale without unnecessary alpha extraction.
+- **Pixel-Perfect Seam & Geometry Alignment (2x, 3x, 4x)**: Probes exact input dimensions and strictly enforces target geometry (`(Width * scale) x (Height * scale)!`) on both color and alpha layers, eliminating 1-pixel seam discrepancies, cuts, and misalignment when adjacent tiles are joined in Dolphin.
+- **Models**: `realesrgan-x4plus-anime`, `realesrgan-x4plus`, `realesrnet-x4plus`.
 - **Scaling Factors**: `2x`, `3x`, `4x`.
-- **Alpha Modes**: Neural AI upscale (for sharp cutout borders) or Lanczos mathematical resampling.
 - **Vulkan GPU Acceleration**: Auto-detects discrete NVIDIA/AMD GPUs via Vulkan device enumeration.
 
-### 4. 🟪 DDS Texture Optimizer
-- **DirectDraw Surface Acceleration**: Converts PNG textures to `.dds` hardware block compression formats natively decoded by GPU texture units, drastically reducing VRAM consumption and eliminating texture pop-in stutters.
+### 4. 🟪 DDS Texture Optimizer (`Delphis.Core.Services.DdsOptimizer`)
+- **DirectDraw Surface Acceleration**: Converts PNG textures to `.dds` hardware block compression formats natively decoded by GPU texture units.
 - **Presets Tailored for Dolphin**:
   - **BC7**: High-Quality RGBA (Recommended standard for modern HD texture packs).
   - **BC1 / DXT1**: High-Performance Opaque textures (no alpha).
-  - **BC1a**: 1-Bit Cutout transparency (decals, foliage).
+  - **BC1a**: 1-Bit Cutout transparency.
   - **BC3 / DXT5**: Interpolated Alpha for broad legacy compatibility.
   - **BC5**: Two-channel format designed for tangent-space Normal / Bump maps.
-- **Automated Mipmap Generation**: Generates complete mipmap chains to eliminate distant texture shimmering and aliasing.
-
----
-
-## 🎨 Desktop Integration & UX
-- **KDE Plasma 6 Breeze Theme**: Fully palette-driven interface that matches system colors, light/dark themes, and accent colors dynamically without synthetic CSS overrides.
-- **XDG Desktop Portal**: Native Linux file/folder selection dialogs with full **Drag & Drop** support.
-- **Real-Time Asynchronous Console**: Non-blocking QThread execution with real-time log streaming, progress bar, clipboard export, and instant cancellation.
 
 ---
 
 ## ⚙️ Declarative NixOS & Home Manager Configuration
 
 ### NixOS System Module
-Add Delphis to your system's `flake.nix`:
-
 ```nix
 {
   inputs = {
@@ -145,110 +109,44 @@ Add Delphis to your system's `flake.nix`:
 }
 ```
 
-### Home Manager User Module
-```nix
-{
-  inputs = {
-    delphis.url = "github:Cleison-oliveira/Delphis";
-  };
-
-  # In your home-manager configuration:
-  imports = [ delphis.homeManagerModules.default ];
-
-  programs.delphis.enable = true;
-}
-```
-
----
-
-## 🛠️ Development & Traditional Python Setup
-
-### Flake Development Shell
-```bash
-nix develop
-```
-
-### Traditional Python venv
-```bash
-python -m venv .venv
-source .venv/bin/activate
-pip install -e ".[test]"
-delphis
-```
-
----
-
-## 🧪 Automated Testing
-
-### Flake Check (Nix Sandbox)
-```bash
-nix flake check
-```
-
-### Pytest Runner App
-```bash
-nix run .#test
-# Or directly via pytest:
-pytest tests/ -v
-```
-
 ---
 
 ## 📂 Project Architecture
 
 ```
 Delphis/
-├── flake.nix                   # Nix Flake entrypoint (packages, apps, modules, checks, devShell)
-├── flake.lock                  # Pinned flake dependency lockfile
-├── default.nix                 # Flake-compat bridge for classic nix-build
-├── shell.nix                   # Flake-compat bridge for classic nix-shell
-├── pyproject.toml              # Python packaging configuration (PEP 621)
-├── LICENSE                     # MIT License & upstream copyrights
-├── CREDITS.md                  # Comprehensive author & library attributions
-├── README.md                   # Project documentation
+├── Delphis.sln                         # Solution root (.NET 8)
+├── flake.nix                           # Nix Flake entrypoint
+├── flake.lock                          # Pinned dependency lockfile
+├── default.nix                         # Flake-compat bridge for nix-build
+├── shell.nix                           # Flake-compat bridge for nix-shell
+├── LICENSE                             # MIT License
+├── CREDITS.md                          # Comprehensive author & library attributions
+├── README.md                           # Documentation
 ├── nix/
-│   ├── dte.nix                 # DolphinTextureExtraction-tool derivation
-│   ├── delphis.nix             # Delphis Python Qt6 package derivation
-│   ├── overlay.nix             # Nixpkgs overlay
-│   ├── nixos-module.nix        # NixOS system module
-│   └── home-manager-module.nix # Home Manager user module
-├── tests/
-│   ├── conftest.py             # Global pytest Qt fixtures & path setup
-│   ├── test_constants.py       # Constants & preset validation tests
-│   ├── test_alpha_backend.py   # Alpha transparency & defringing unit tests
-│   ├── test_dte_backend.py     # DTE command verb & argument builder tests
-│   ├── test_dds_backend.py     # DDS encoder command & preset tests
-│   ├── test_env_check.py       # Dependency & Vulkan GPU detection tests
-│   ├── test_runner.py          # Asynchronous worker signals & cancellation tests
-│   └── test_gui_smoke.py       # Headless PyQt6 UI initialization tests
-└── delphis/
-    ├── __init__.py             # Package init
-    ├── main.py                 # Application entry point
-    ├── constants.py            # Presets, models, formats & configuration
-    ├── assets/
-    │   └── icons/
-    │       └── delphis.svg     # Scalable vector application icon
-    ├── core/
-    │   ├── runner.py           # Background QThread worker & subprocess runner
-    │   ├── env_check.py        # Dependency and Vulkan GPU detector
-    │   ├── downloader.py       # Tool/model provisioner
-    │   ├── dte_backend.py      # DTE extraction & tonemap handler
-    │   ├── alpha_backend.py    # Alpha transparency engine
-    │   ├── upscaler_backend.py # 4-Channel AI upscaler pipeline
-    │   └── dds_backend.py      # DDS converter with Dolphin presets
-    └── gui/
-        ├── style.py            # KDE Plasma 6 Breeze theme bridge
-        ├── main_window.py      # Main window with tabs & console drawer
-        ├── widgets/
-        │   ├── path_picker.py  # XDG Portal file/folder selector with Drag & Drop
-        │   ├── console_drawer.py # Real-time log terminal with auto-scroll & cancel
-        │   ├── status_banner.py  # Dependency status indicator banner
-        │   └── alpha_slider.py # Synchronized 0-255 Slider + SpinBox + Presets
-        └── tabs/
-            ├── tab_dte.py      # Tab 1: DTE Extraction & Tonemaps
-            ├── tab_alpha.py    # Tab 2: Alpha & Transparency
-            ├── tab_upscale.py  # Tab 3: AI Upscaler (4-Channel)
-            └── tab_dds.py      # Tab 4: DDS Texture Optimizer
+│   ├── dte.nix                         # DolphinTextureExtraction-tool derivation
+│   ├── delphis.nix                     # Delphis .NET 8 package derivation
+│   ├── overlay.nix                     # Nixpkgs overlay
+│   ├── nixos-module.nix                # NixOS system module
+│   └── home-manager-module.nix         # Home Manager user module
+├── src/
+│   ├── Delphis.Core/                   # Core business logic & services
+│   │   ├── Delphis.Core.csproj
+│   │   ├── DelphisConstants.cs
+│   │   ├── Models/                     # DdsPreset, GpuDeviceInfo, DependencyInfo, Progress
+│   │   └── Services/                   # AlphaProcessor, DdsOptimizer, Upscaler, DteOrchestrator, ProcessRunner
+│   └── Delphis.Cli/                    # CLI executable
+│       ├── Delphis.Cli.csproj
+│       └── Program.cs
+└── tests/
+    └── Delphis.Tests/                  # Automated unit test suite (xUnit)
+        ├── Delphis.Tests.csproj
+        ├── ConstantsTests.cs
+        ├── AlphaProcessorTests.cs
+        ├── DdsOptimizerTests.cs
+        ├── DteOrchestratorTests.cs
+        ├── EnvironmentDetectorTests.cs
+        └── ToolDownloaderTests.cs
 ```
 
 ---

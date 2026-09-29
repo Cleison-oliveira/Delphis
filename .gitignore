@@ -1,3 +1,11 @@
+# .NET / C# Build Artifacts
+bin/
+obj/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
 # Python
 __pycache__/
 *.py[cod]
@@ -35,6 +43,7 @@ venv.bak/
 htmlcov/
 .tox/
 .nox/
+TestResults/
 
 # Nix
 result

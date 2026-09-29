@@ -1,3 +1,0 @@
-"""
-Tab modules for Delphis.
-"""

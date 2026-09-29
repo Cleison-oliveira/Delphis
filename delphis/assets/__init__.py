@@ -1,1 +1,0 @@
-# Delphis assets package
