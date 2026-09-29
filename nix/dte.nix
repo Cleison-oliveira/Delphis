@@ -19,6 +19,7 @@
   libuuid,
   util-linux,
   dotnetCorePackages,
+  _7zz,
 }:
 stdenv.mkDerivation rec {
   pname = "dolphin-texture-extraction-tool";
@@ -51,6 +52,7 @@ stdenv.mkDerivation rec {
     libuuid
     util-linux
     dotnetCorePackages.runtime_8_0
+    _7zz.lib
   ];
 
   unpackPhase = ''
@@ -62,11 +64,18 @@ stdenv.mkDerivation rec {
 
   installPhase = ''
     runHook preInstall
-    mkdir -p $out/lib/dte $out/bin
+    mkdir -p $out/lib/dte/x64 $out/bin
 
     cp -r ./* $out/lib/dte/
     chmod +x $out/lib/dte/libglfw.so.3.3 || true
     chmod +x $out/lib/dte/libnironcompress.so || true
+
+    # Link 7-Zip native shared library for SevenZipExtractor archive support
+    ln -sf ${_7zz.lib}/lib/7z.so $out/lib/dte/7z-x64.dll
+    ln -sf ${_7zz.lib}/lib/7z.so $out/lib/dte/7z.dll
+    ln -sf ${_7zz.lib}/lib/7z.so $out/lib/dte/7z.so
+    ln -sf ${_7zz.lib}/lib/7z.so $out/lib/dte/x64/7z.dll
+    ln -sf ${_7zz.lib}/lib/7z.so $out/lib/dte/x64/7z.so
 
     DOTNET_RUNTIME=${dotnetCorePackages.runtime_8_0}
 
@@ -90,6 +99,8 @@ RUNTIMECONFIG
       --add-flags "$out/lib/dte/DolphinTextureExtraction.tool.dll" \
       --set DOTNET_ROLL_FORWARD "LatestMajor" \
       --prefix LD_LIBRARY_PATH : "$out/lib/dte" \
+      --prefix LD_LIBRARY_PATH : "$out/lib/dte/x64" \
+      --prefix LD_LIBRARY_PATH : "${_7zz.lib}/lib" \
       --prefix LD_LIBRARY_PATH : "$DOTNET_RUNTIME/lib"
 
     ln -s $out/bin/dte $out/bin/DolphinTextureExtraction.tool
