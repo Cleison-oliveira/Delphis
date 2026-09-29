@@ -32,6 +32,19 @@ SUPPORTED_IMAGE_EXTENSIONS = {
 
 PNG_EXTENSIONS = {".png"}
 
+IMAGE_FILE_FILTER = (
+    "All Supported Images (*.png *.webp *.tga *.dds *.bmp *.jpg *.jpeg *.tif *.tiff);;"
+    "PNG Images (*.png);;"
+    "All Files (*)"
+)
+
+GAME_ARCHIVE_FILE_FILTER = (
+    "Supported Game & Archive Files (*.iso *.rvz *.gcm *.wbfs *.cso *.wad *.tgc *.wia *.arc *.szs *.szp *.rarc *.u8 *.cpk *.afs *.pak *.bin *.dat *.brres *.bmd *.bdl *.tpl *.bti *.tga *.dds *.png);;"
+    "Game Disc Images (*.iso *.rvz *.gcm *.wbfs *.cso *.wad *.tgc *.wia);;"
+    "Game Archives (*.arc *.szs *.szp *.rarc *.u8 *.cpk *.afs *.pak *.bin *.dat *.brres);;"
+    "All Files (*)"
+)
+
 DDS_PRESETS: Dict[str, Dict[str, any]] = {
     "BC7": {
         "name": "BC7 (High Quality RGBA - Recommended)",

@@ -66,14 +66,26 @@ class PathPicker(QWidget):
     def setPath(self, path_str: str):
         self.line_edit.setText(path_str.strip())
 
+    def setFileFilter(self, file_filter: str):
+        self.file_filter = file_filter
+
+    def setPlaceholder(self, placeholder: str):
+        self.line_edit.setPlaceholderText(placeholder)
+
     def _choose_file(self):
         start_dir = self.path() if os.path.exists(self.path()) else os.path.expanduser("~")
         if os.path.isfile(start_dir):
             start_dir = os.path.dirname(start_dir)
 
+        title = "Select File"
+        if "Game" in self.file_filter or "Archive" in self.file_filter:
+            title = "Select Game Disc / Archive File"
+        elif "Image" in self.file_filter:
+            title = "Select Image File"
+
         file_path, _ = QFileDialog.getOpenFileName(
             self,
-            "Select Input Image File",
+            title,
             start_dir,
             self.file_filter,
             options=QFileDialog.Option(0)

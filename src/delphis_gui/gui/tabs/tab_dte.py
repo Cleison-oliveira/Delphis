@@ -8,6 +8,7 @@ from PyQt6.QtWidgets import (
     QButtonGroup, QCheckBox, QLabel, QLineEdit, QFormLayout, QScrollArea,
     QSpinBox, QComboBox, QMessageBox
 )
+from delphis_gui.constants import GAME_ARCHIVE_FILE_FILTER, IMAGE_FILE_FILTER
 from delphis_gui.gui.widgets.path_picker import PathPicker
 
 class DTETab(QWidget):
@@ -37,7 +38,8 @@ class DTETab(QWidget):
 
         self.input_picker = PathPicker(
             mode="both",
-            placeholder="Select Game dump/ISO or folder containing textures/tonemaps...",
+            file_filter=IMAGE_FILE_FILTER,
+            placeholder="Select Game dump/ISO, tonemap pairs (RGBA_*), or folder...",
             parent=self
         )
         paths_layout.addRow("Input Path:", self.input_picker)
@@ -98,6 +100,8 @@ class DTETab(QWidget):
         mode_layout.addLayout(custom_row)
 
         self.rb_custom.toggled.connect(self.txt_custom_cmd.setEnabled)
+        self.mode_btn_group.buttonToggled.connect(self._on_mode_changed)
+        self._on_mode_changed(None, True)
 
         layout.addWidget(mode_group)
 
@@ -157,6 +161,17 @@ class DTETab(QWidget):
         main_vbox = QVBoxLayout(self)
         main_vbox.setContentsMargins(0, 0, 0, 0)
         main_vbox.addWidget(scroll)
+
+    def _on_mode_changed(self, button=None, checked=True):
+        if not checked:
+            return
+        mode_id = self.mode_btn_group.checkedId()
+        if mode_id in (4, 5):  # 4 = Extract Game Textures, 5 = Unpack Raw Archives
+            self.input_picker.setFileFilter(GAME_ARCHIVE_FILE_FILTER)
+            self.input_picker.setPlaceholder("Select Game ISO/Disc (.iso, .rvz, .gcm, .wbfs), archive (.arc, .szs, .pak), or folder...")
+        else:
+            self.input_picker.setFileFilter(IMAGE_FILE_FILTER)
+            self.input_picker.setPlaceholder("Select Game dump/ISO, tonemap pairs (RGBA_*), or folder containing textures...")
 
     def execute_action(self):
         """Execute DTE task from top action bar."""

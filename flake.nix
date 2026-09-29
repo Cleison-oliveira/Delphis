@@ -135,6 +135,10 @@
 
             packages = [
               pkgs.dotnetCorePackages.sdk_8_0
+              (pkgs.python3.withPackages (ps: with ps; [
+                pyqt6
+                pillow
+              ]))
               pkgs.dolphin-texture-extraction-tool
               pkgs.realesrgan-ncnn-vulkan
               pkgs.imagemagick
